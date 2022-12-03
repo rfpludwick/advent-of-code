@@ -2,14 +2,38 @@ package main
 
 import (
 	"bufio"
-	"fmt"
+	"flag"
 	"log"
 	"os"
 	"strings"
 )
 
+var (
+	flagShowHelp  bool
+	flagTestMode  bool
+	flagInputFile string
+)
+
+func init() {
+	flag.BoolVar(&flagShowHelp, "help", false, "Show this help")
+	flag.BoolVar(&flagTestMode, "test", false, "Enable test mode")
+	flag.StringVar(&flagInputFile, "input", "./input.txt", "Input file to use")
+}
+
 func main() {
-	file, err := os.Open("./input.txt")
+	flag.Parse()
+
+	if flagShowHelp {
+		flag.Usage()
+
+		os.Exit(0)
+	}
+
+	if flagTestMode {
+		flagInputFile = "./test-input.txt"
+	}
+
+	file, err := os.Open(flagInputFile)
 
 	if err != nil {
 		log.Fatal(err)
@@ -60,5 +84,5 @@ func main() {
 		log.Fatal(err)
 	}
 
-	fmt.Printf("Player's total score is %d", totalScore)
+	log.Printf("Player's total score is %d", totalScore)
 }
