@@ -2,11 +2,11 @@ package main
 
 import (
 	"bufio"
+	"bytes"
 	"flag"
 	"fmt"
 	"log"
 	"os"
-	"strings"
 )
 
 var (
@@ -53,10 +53,10 @@ func main() {
 
 	for i := 0; i < (len(line) - 13); i++ {
 	loopStart:
-		marker := line[leftPosition:rightPosition]
+		marker := []byte(line[leftPosition:rightPosition])
 
-		for j := 0; j < 14; j++ {
-			if strings.Count(marker, string(marker[j])) > 1 {
+		for j := 0; j < 13; j++ {
+			if bytes.Count(marker, marker[j:j+1]) > 1 {
 				leftPosition++
 				rightPosition++
 
