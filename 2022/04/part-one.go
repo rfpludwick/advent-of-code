@@ -2,48 +2,12 @@ package main
 
 import (
 	"bufio"
-	"flag"
 	"log"
-	"os"
 	"strconv"
 	"strings"
 )
 
-var (
-	flagShowHelp  bool
-	flagTestMode  bool
-	flagInputFile string
-)
-
-func init() {
-	flag.BoolVar(&flagShowHelp, "help", false, "Show this help")
-	flag.BoolVar(&flagTestMode, "test", false, "Enable test mode")
-	flag.StringVar(&flagInputFile, "input", "./input.txt", "Input file to use")
-}
-
-func main() {
-	flag.Parse()
-
-	if flagShowHelp {
-		flag.Usage()
-
-		os.Exit(0)
-	}
-
-	if flagTestMode {
-		flagInputFile = "./test-input.txt"
-	}
-
-	file, err := os.Open(flagInputFile)
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	defer file.Close()
-
-	scanner := bufio.NewScanner(file)
-
+func partOne(scanner *bufio.Scanner) {
 	numberFullOverlaps := 0
 
 	for scanner.Scan() {
@@ -63,10 +27,6 @@ func main() {
 		} else if rightMin >= leftMin && rightMax <= leftMax { // Check if right contained within left
 			numberFullOverlaps++
 		}
-	}
-
-	if err := scanner.Err(); err != nil {
-		log.Fatal(err)
 	}
 
 	log.Printf("Number of full overlaps is %d", numberFullOverlaps)

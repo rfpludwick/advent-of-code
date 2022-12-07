@@ -3,46 +3,10 @@ package main
 import (
 	"bufio"
 	"bytes"
-	"flag"
 	"fmt"
-	"log"
-	"os"
 )
 
-var (
-	flagShowHelp  bool
-	flagTestMode  bool
-	flagInputFile string
-)
-
-func init() {
-	flag.BoolVar(&flagShowHelp, "help", false, "Show this help")
-	flag.BoolVar(&flagTestMode, "test", false, "Enable test mode")
-	flag.StringVar(&flagInputFile, "input", "./input.txt", "Input file to use")
-}
-
-func main() {
-	flag.Parse()
-
-	if flagShowHelp {
-		flag.Usage()
-
-		os.Exit(0)
-	}
-
-	if flagTestMode {
-		flagInputFile = "./test-input.txt"
-	}
-
-	file, err := os.Open(flagInputFile)
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	defer file.Close()
-
-	scanner := bufio.NewScanner(file)
+func partTwo(scanner *bufio.Scanner) {
 	scanner.Scan()
 
 	line := []byte(scanner.Text())
@@ -51,7 +15,7 @@ func main() {
 	leftPosition := 0
 	rightPosition := 14
 
-	for i := 0; i < (len(line) - 13); i++ {
+	for {
 	loopStart:
 		marker := line[leftPosition:rightPosition]
 
@@ -67,9 +31,5 @@ func main() {
 		fmt.Printf("Buffer position is %d\n", rightPosition)
 
 		break
-	}
-
-	if err := scanner.Err(); err != nil {
-		log.Fatal(err)
 	}
 }

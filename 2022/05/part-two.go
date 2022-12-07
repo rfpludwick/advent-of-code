@@ -2,127 +2,17 @@ package main
 
 import (
 	"bufio"
-	"flag"
-	"fmt"
-	"log"
-	"os"
 	"strconv"
 	"strings"
 )
 
-var (
-	flagShowHelp  bool
-	flagTestMode  bool
-	flagInputFile string
-)
-
-func init() {
-	flag.BoolVar(&flagShowHelp, "help", false, "Show this help")
-	flag.BoolVar(&flagTestMode, "test", false, "Enable test mode")
-	flag.StringVar(&flagInputFile, "input", "./input.txt", "Input file to use")
-}
-
-func main() {
-	flag.Parse()
-
-	if flagShowHelp {
-		flag.Usage()
-
-		os.Exit(0)
-	}
-
-	if flagTestMode {
-		flagInputFile = "./test-input.txt"
-	}
-
-	file, err := os.Open(flagInputFile)
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	defer file.Close()
-
-	scanner := bufio.NewScanner(file)
-
+func partTwo(scanner *bufio.Scanner) {
 	crateStacks := parseInitialCrates(scanner)
-	crateStacks = parseCrateMoves(scanner, crateStacks)
+	crateStacks = parseCrateMovesTwo(scanner, crateStacks)
 	printStackTops(crateStacks)
-
-	if err := scanner.Err(); err != nil {
-		log.Fatal(err)
-	}
 }
 
-func parseInitialCrates(scanner *bufio.Scanner) [][]rune {
-	numberCrateStacks := 0
-	crateStacks := make([][]rune, 0)
-
-	for scanner.Scan() {
-		line := scanner.Text()
-
-		// Check if we've reached the numerical base
-		if line[1] == '1' {
-			break
-		}
-
-		stackNumber := 0
-
-		for {
-			lineLength := len(line)
-
-			// Line done processing?
-			if lineLength == 0 {
-				break
-			}
-
-			progressLine := func() {
-				line = line[4:]
-
-				stackNumber++
-			}
-
-			// Prep next stack
-			if stackNumber >= numberCrateStacks {
-				crateStacks = append(crateStacks, make([]rune, 0))
-
-				numberCrateStacks++
-			}
-
-			// Skip this stack? Check for end of line as well...
-			if lineLength > 3 && line[:4] == "    " {
-				progressLine()
-
-				continue
-			}
-
-			// Crate in stack
-			if line[0] == '[' {
-				crateStacks[stackNumber] = append(crateStacks[stackNumber], rune(line[1]))
-
-				if lineLength == 3 { // Indicates the end of the line
-					break
-				}
-
-				progressLine()
-
-				continue
-			}
-		}
-	}
-
-	// Reverse the stacks so top is at the end of the data structure
-	for s, stack := range crateStacks {
-		crateStacks[s] = reverseStack(stack)
-	}
-
-	// Advance past the empty line
-	scanner.Scan()
-
-	return crateStacks
-}
-
-func parseCrateMoves(scanner *bufio.Scanner, crateStacks [][]rune) [][]rune {
+func parseCrateMovesTwo(scanner *bufio.Scanner, crateStacks [][]rune) [][]rune {
 	for scanner.Scan() {
 		line := scanner.Text()
 
@@ -158,14 +48,6 @@ func parseCrateMoves(scanner *bufio.Scanner, crateStacks [][]rune) [][]rune {
 	}
 
 	return crateStacks
-}
-
-func printStackTops(crateStacks [][]rune) {
-	for _, stack := range crateStacks {
-		fmt.Printf("%s", string(stack[len(stack)-1]))
-	}
-
-	fmt.Println("")
 }
 
 func reverseStack(crateStack []rune) []rune {
