@@ -18,34 +18,35 @@ var (
 )
 
 type Monkey struct {
-	Items                   []int
+	Items                   []uint64
 	OperationLeft           string
 	OperationOperator       rune
 	OperationRight          string
-	TestDivisor             int
+	TestDivisor             uint64
+	DivisorLCM              uint64
 	TestTrueMonkeyReceiver  int
 	TestFalseMonkeyReceiver int
 	NumberItemsConsidered   int
 }
 
-func (m *Monkey) Operation(input int) int {
+func (m *Monkey) Operation(input uint64) uint64 {
 	var (
-		operationLeft  int
-		operationRight int
+		operationLeft  uint64
+		operationRight uint64
 	)
 
 	switch m.OperationLeft {
 	case "old":
 		operationLeft = input
 	default:
-		operationLeft, _ = strconv.Atoi(m.OperationLeft)
+		operationLeft, _ = strconv.ParseUint(m.OperationLeft, 10, 64)
 	}
 
 	switch m.OperationRight {
 	case "old":
 		operationRight = input
 	default:
-		operationRight, _ = strconv.Atoi(m.OperationRight)
+		operationRight, _ = strconv.ParseUint(m.OperationRight, 10, 64)
 	}
 
 	switch m.OperationOperator {
@@ -127,10 +128,10 @@ func initializeMonkeys(scanner *bufio.Scanner) []Monkey {
 
 			monkeys = append(monkeys, Monkey{})
 
-			monkeys[currentMonkeyNumber].Items = make([]int, 0)
+			monkeys[currentMonkeyNumber].Items = make([]uint64, 0)
 		} else if line[0:18] == "  Starting items: " {
 			for _, linePart := range strings.Split(line[18:], ",") {
-				item, _ := strconv.Atoi(strings.Trim(linePart, " "))
+				item, _ := strconv.ParseUint(strings.Trim(linePart, " "), 10, 64)
 
 				monkeys[currentMonkeyNumber].Items = append(monkeys[currentMonkeyNumber].Items, item)
 			}
@@ -141,7 +142,7 @@ func initializeMonkeys(scanner *bufio.Scanner) []Monkey {
 			monkeys[currentMonkeyNumber].OperationOperator = rune(lineParts[1][0])
 			monkeys[currentMonkeyNumber].OperationRight = lineParts[2]
 		} else if line[0:21] == "  Test: divisible by " {
-			monkeys[currentMonkeyNumber].TestDivisor, _ = strconv.Atoi(line[21:])
+			monkeys[currentMonkeyNumber].TestDivisor, _ = strconv.ParseUint(line[21:], 10, 64)
 		} else if line[0:29] == "    If true: throw to monkey " {
 			monkeys[currentMonkeyNumber].TestTrueMonkeyReceiver, _ = strconv.Atoi(line[29:])
 		} else if line[0:30] == "    If false: throw to monkey " {
@@ -153,7 +154,48 @@ func initializeMonkeys(scanner *bufio.Scanner) []Monkey {
 		}
 	}
 
+	lcm := getMonkeysLcm(monkeys)
+
+	for i := 0; i < len(monkeys); i++ {
+		monkeys[i].DivisorLCM = lcm
+	}
+
 	return monkeys
+}
+
+// Following two functions generally from https://siongui.github.io/2017/06/03/go-find-lcm-by-gcd/
+func getMonkeysLcm(monkeys []Monkey) uint64 {
+	// greatest common divisor (GCD) via Euclidean algorithm
+	GCD := func(a, b uint64) uint64 {
+		for b != 0 {
+			t := b
+			b = a % b
+			a = t
+		}
+		return a
+	}
+
+	// find Least Common Multiple (LCM) via GCD
+	var LCM func(...uint64) uint64
+
+	LCM = func(integers ...uint64) uint64 {
+		result := integers[0] * integers[1] / GCD(integers[0], integers[1])
+
+		for i := 2; i < len(integers); i++ {
+			result = LCM(result, integers[i])
+		}
+
+		return result
+	}
+
+	// My code
+	allDivisors := make([]uint64, 0)
+
+	for _, monkey := range monkeys {
+		allDivisors = append(allDivisors, monkey.TestDivisor)
+	}
+
+	return LCM(allDivisors...)
 }
 
 func processRound(monkeys []Monkey, allowWorryRelief bool) {
@@ -167,6 +209,12 @@ func processRound(monkeys []Monkey, allowWorryRelief bool) {
 				item /= 3
 			}
 
+			item %= monkey.DivisorLCM
+
+			// if item%monkey.DivisorLCM == 0 {
+			// 	item /= monkey.DivisorLCM
+			// }
+
 			var monkeyReceiver int
 
 			if item%monkey.TestDivisor == 0 {
@@ -178,6 +226,6 @@ func processRound(monkeys []Monkey, allowWorryRelief bool) {
 			monkeys[monkeyReceiver].Items = append(monkeys[monkeyReceiver].Items, item)
 		}
 
-		monkeys[i].Items = make([]int, 0)
+		monkeys[i].Items = make([]uint64, 0)
 	}
 }
